@@ -1,40 +1,27 @@
-// Check if Web MIDI is supported
-if (navigator.requestMIDIAccess) {
-    // Request access to MIDI devices
-    navigator.requestMIDIAccess()
-        .then(function(midiAccess) {
-            // Get the first available MIDI input device
-            var inputs = midiAccess.inputs.values();
-            var input = inputs.next();
+// Enable WEBMIDI.js and trigger the onEnabled() function when ready
+WebMidi
+.enable()
+.then(onEnabled)
+.catch(err => alert(err));
 
-            if (input.done) {
-                console.error("No MIDI input devices available.");
-                return;
-            }
+// Function triggered when WEBMIDI.js is ready
+function onEnabled() {
 
-            input = input.value;
-            console.log('input:', input)
-
-            // Check if the input device is available
-            if (!input) {
-                console.error("MIDI input device is undefined.");
-                return;
-            }
-
-            // Listen for MIDI messages from the input device
-            input.onmidimessage = function(event) {
-                // Log MIDI messages to the console (for demonstration)
-                console.log("MIDI Message received:", event.data);
-                
-                // Here you can handle MIDI messages as needed
-                // For example, you could trigger sounds or control parameters
-            };
-        })
-        .catch(function(err) {
-            // Handle any errors
-            console.error("MIDI access request failed:", err);
-        });
-} else {
-    // Web MIDI not supported
-    console.error("Web MIDI is not supported in this browser.");
-}
+    if (WebMidi.inputs.length < 1) {
+      document.body.innerHTML+= "No device detected.";
+    } else {
+      WebMidi.inputs.forEach((device, index) => {
+        document.body.innerHTML+= `${index}: ${device.name} <br>`;
+      });
+    }
+    
+    const mySynth = WebMidi.inputs[0];
+    // const mySynth = WebMidi.getInputByName("TYPE NAME HERE!")
+    
+    mySynth.channels[1].addListener("noteon", e => {
+      document.body.innerHTML+= `${e.note.name} <br>`;
+    });
+    
+  }
+  
+  
