@@ -1,47 +1,47 @@
 <!DOCTYPE html>
 
 <html lang="en">
-
   <head>
-
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>WebMidi.js Quick Start</title>
 
     <script src="https://cdn.jsdelivr.net/npm/webmidi@latest/dist/iife/webmidi.iife.js"></script>
 
     <script type="module">
-
       // Enable WebMidi.js and trigger the onEnabled() function when ready.
-      WebMidi
-        .enable()
+      WebMidi.enable()
         .then(onEnabled)
-        .catch(err => alert(err));
+        .catch((err) => alert(err));
 
       function onEnabled() {
-
         if (WebMidi.inputs.length < 1) {
-          document.body.innerHTML+= "No device detected.";
+          document.body.innerHTML += "No device detected.";
         } else {
           WebMidi.inputs.forEach((device, index) => {
-            document.body.innerHTML+= `${index}: ${device.name} <br>`;
+            document.body.innerHTML += `${index}: ${device.name} <br>`;
           });
         }
 
         const mySynth = WebMidi.inputs[0];
+        console.log("mySynth:", mySynth);
         // const mySynth = WebMidi.getInputByName("TYPE NAME HERE!")
 
-        mySynth.channels[1].addListener("noteon", e => {
-          document.body.innerHTML+= `${e.note.name} <br>`;
+        mySynth.channels[1].addListener("noteon", (e) => {
+          console.log("e.note:", e.note);
+          document.body.innerHTML += `${e.note.name} <br>`;
         });
 
+        var output = WebMidi.outputs[0];
+        console.log("output:", output);
+        var channel = output.channels[1];
+        channel.playNote("C3");
+        channel.playNote("E3", { time: +500 });
+        channel.playNote("G3", { time: +1000 });
       }
-
     </script>
-
   </head>
 
   <body>
     <h1>WebMidi.js Quick Start</h1>
   </body>
-
 </html>
