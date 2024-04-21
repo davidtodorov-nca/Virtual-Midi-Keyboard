@@ -242,18 +242,18 @@ const app = {
     getNoteNameFromKeyPressed(key) {
         // Define mapping of keys to note names
         const keyMap = {
-            'A': 'C2',
-            'W': 'C#2',
-            'S': 'D2',
-            'E': 'D#2',
-            'D': 'E2',
-            'F': 'F2',
-            'T': 'F#2',
-            'G': 'G2',
-            'Y': 'G#2',
-            'H': 'A2',
-            'U': 'A#2',
-            'J': 'B2',
+            'A': 'C4',
+            'W': 'C#4',
+            'S': 'D4',
+            'E': 'D#4',
+            'D': 'E4',
+            'F': 'F4',
+            'T': 'F#4',
+            'G': 'G4',
+            'Y': 'G#4',
+            'H': 'A4',
+            'U': 'A#4',
+            'J': 'B4',
         };
         return keyMap[key];
     },
