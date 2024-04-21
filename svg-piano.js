@@ -5,7 +5,7 @@ const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
 const naturalNotesSharps = ["C", "D", "F", "G", "A"];
 const naturalNotesFlats = ["D", "E", "G", "A", "B"];
 
-const range = ["C1", "C6"];
+const range = ["C2", "C7"];
 
 const app = {
     setupPiano() {
@@ -110,6 +110,38 @@ const app = {
         });
          // Add main SVG to piano div
          piano.appendChild(SVG);
+
+        // Add event listeners for mouse clicks on piano keys
+        document.querySelectorAll('.key').forEach(key => {
+            key.addEventListener('mousedown', event => {
+                const noteName = event.target.dataset.noteName || event.target.dataset.sharpName || event.target.dataset.flatName;
+                this.displayNotes([noteName]);
+            });
+            key.addEventListener('mouseup', event => {
+                const noteName = event.target.dataset.noteName || event.target.dataset.sharpName || event.target.dataset.flatName;
+                this.clearNotes([noteName]);
+            });
+        });
+
+        // Add event listener for keyboard events
+        document.addEventListener('keydown', event => {
+            const key = event.key.toUpperCase();
+            const noteName = this.getNoteNameFromKeyPressed(key);
+            if (noteName) {
+                this.displayNotes([noteName]);
+                var output = WebMidi.outputs[0];
+                var channel = output.channels[1];
+                channel.playNote(noteName);        
+            }
+        });
+        // Add event listener for keyboard events
+        document.addEventListener('keyup', event => {
+            const key = event.key.toUpperCase();
+            const noteName = this.getNoteNameFromKeyPressed(key);
+            if (noteName) {
+                this.clearNotes([noteName]);
+            }
+        });
     },
     createOctave(octaveNumber) {
         const octave = utils.createSVGElement("g");
@@ -174,21 +206,81 @@ const app = {
         return svg;
     },
     displayNotes(notes) {
+        console.log('displaying notes:', notes)
         const pianoKeys = document.querySelectorAll(".key");
-        utils.removeClassFromNodeCollection(pianoKeys, "show");
-
         notes.forEach(noteName => {
             pianoKeys.forEach(key => {
                 const naturalName = key.dataset.noteName;
                 const sharpName = key.dataset.sharpName;
                 const flatName = key.dataset.flatName;
-
+    
                 if (naturalName === noteName || sharpName === noteName || flatName === noteName) {
-                    key.classList.add("show");
+                    setTimeout(() => {
+                        key.classList.add("show");
+                    }, 0); // Adding a minimal delay
                 }
             });
         });
-    }
+    },
+    clearNotes(notes) {
+        console.log('clearing notes:', notes)
+        const pianoKeys = document.querySelectorAll(".key");
+        notes.forEach(noteName => {
+            pianoKeys.forEach(key => {
+                const naturalName = key.dataset.noteName;
+                const sharpName = key.dataset.sharpName;
+                const flatName = key.dataset.flatName;
+    
+                if (naturalName === noteName || sharpName === noteName || flatName === noteName) {
+                    setTimeout(() => {
+                        key.classList.remove("show");
+                    }, 0); // Adding a minimal delay
+                }
+            });
+        });
+    },
+    getNoteNameFromKeyPressed(key) {
+        // Define mapping of keys to note names
+        const keyMap = {
+            'A': 'C2',
+            'W': 'C#2',
+            'S': 'D2',
+            'E': 'D#2',
+            'D': 'E2',
+            'F': 'F2',
+            'T': 'F#2',
+            'G': 'G2',
+            'Y': 'G#2',
+            'H': 'A2',
+            'U': 'A#2',
+            'J': 'B2',
+        };
+        return keyMap[key];
+    },
+    // Function triggered when WEBMIDI.js is ready
+    onEnabled() {
+
+        if (WebMidi.inputs.length < 1) {
+        document.body.innerHTML+= "No device detected.";
+        } else {
+        WebMidi.inputs.forEach((device, index) => {
+            // document.body.innerHTML+= `${index}: ${device.name} <br>`;
+        });
+        }
+        
+        const mySynth = WebMidi.inputs[0];
+        // const mySynth = WebMidi.getInputByName("TYPE NAME HERE!")
+        
+        mySynth.channels[1].addListener("noteon", e => {
+            var noteName = e.note.name+(e.note.accidental ? e.note.accidental : "")+e.note.octave
+            app.displayNotes([noteName]);
+        });
+    
+        mySynth.channels[1].addListener("noteoff", e => {
+            var noteName = e.note.name+(e.note.accidental ? e.note.accidental : "")+e.note.octave
+            app.clearNotes([noteName]);
+        });
+  }
 }
 
 const utils = {
@@ -210,7 +302,12 @@ const utils = {
                 node.classList.remove(classToRemove);
             }
         });
-    }
+    },
 }
 
 app.setupPiano();
+
+WebMidi
+.enable()
+.then(app.onEnabled)
+.catch(err => alert(err));
